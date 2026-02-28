@@ -1808,7 +1808,7 @@ class AdvancedSQLiScanner:
             'cookies': self.cookies,
             'timeout': self.profile['timeout'],
             'verify': self.profile['verify_ssl'],
-            'proxies': self.proxies
+            'proxies': self.proxies 
         }
         start = time.perf_counter()
         try:
@@ -3822,15 +3822,39 @@ class KNDYSFramework:
             self.logger.log(f"Could not determine local IP: {str(e)}", "WARNING")
             return "127.0.0.1"
     
+    def _get_category_descriptions(self):
+        """Return descriptions for each module category"""
+        return {
+            'recon':    'Reconnaissance and information gathering',
+            'scan':     'Vulnerability and security scanning',
+            'exploit':  'Exploitation and attack execution',
+            'post':     'Post-exploitation and persistence',
+            'password': 'Password attacks and credential recovery',
+            'wireless': 'Wireless network analysis and attacks',
+            'social':   'Social engineering and phishing',
+            'network':  'Network attacks and traffic manipulation',
+            'webapp':   'Web application security testing',
+            'report':   'Reporting and evidence management'
+        }
+
     def display_banner(self):
         """Display KNDYS banner"""
         os.system('cls' if os.name == 'nt' else 'clear')
         print(BANNER)
-        print(f"{Fore.CYAN}{Style.BRIGHT}┏━━ RAPID OPS ━━┓{Style.RESET_ALL}")
-        print(f"{Fore.CYAN}┃ {Fore.GREEN}help{Fore.WHITE} // decode full command index{Style.RESET_ALL}")
-        print(f"{Fore.CYAN}┃ {Fore.GREEN}show modules{Fore.WHITE} // enumerate offensive vectors{Style.RESET_ALL}")
-        print(f"{Fore.CYAN}┃ {Fore.GREEN}show wordlists{Fore.WHITE} // sync credential arsenals{Style.RESET_ALL}")
-        print(f"{Fore.CYAN}┗{'━'*32}{Style.RESET_ALL}\n")
+
+        total_modules = sum(len(mods) for mods in self.modules.values())
+        total_categories = len(self.modules)
+
+        w = 58
+        print(f"{Fore.CYAN}{Style.BRIGHT}┌{'─' * w}┐{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}{Style.BRIGHT}│{' KNDYS Framework v1.0'.ljust(w)}│{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}{Style.BRIGHT}│{f' {total_modules} modules across {total_categories} categories'.ljust(w)}│{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}{Style.BRIGHT}├{'─' * w}┤{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}│  {Fore.GREEN}help{Fore.WHITE}              Show all available commands{Fore.CYAN}{'':>5}│{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}│  {Fore.GREEN}show modules{Fore.WHITE}      Browse module categories{Fore.CYAN}{'':>7}│{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}│  {Fore.GREEN}show modules{Fore.WHITE} {Fore.YELLOW}<cat>{Fore.WHITE}  View modules in a category{Fore.CYAN}{'':>2}│{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}│  {Fore.GREEN}use{Fore.WHITE} {Fore.YELLOW}<cat/module>{Fore.WHITE}    Select and configure a module{Fore.CYAN}{'':>2}│{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}{Style.BRIGHT}└{'─' * w}┘{Style.RESET_ALL}\n")
 
         missing = []
         if not NMAP_AVAILABLE:
@@ -3843,10 +3867,8 @@ class KNDYSFramework:
             missing.append("beautifulsoup4")
 
         if missing:
-            print(f"{Fore.RED}{Style.BRIGHT}┏━━ OPTIONAL TOOLCHAIN OFFLINE ━━┓{Style.RESET_ALL}")
-            print(f"{Fore.RED}┃ Missing :: {Fore.WHITE}{', '.join(missing)}{Style.RESET_ALL}")
-            print(f"{Fore.RED}┃ Remedy :: {Fore.GREEN}pip install {' '.join(missing)}{Style.RESET_ALL}")
-            print(f"{Fore.RED}┗{'━'*44}{Style.RESET_ALL}\n")
+            print(f"{Fore.YELLOW}  [!] Optional dependencies not installed: {Fore.WHITE}{', '.join(missing)}{Style.RESET_ALL}")
+            print(f"{Fore.YELLOW}      Install with: {Fore.GREEN}pip install {' '.join(missing)}{Style.RESET_ALL}\n")
     
     def initialize_modules(self):
         """Initialize all available modules"""
@@ -3942,7 +3964,7 @@ class KNDYSFramework:
                     'description': 'Cross-Site Scripting vulnerability scanner',
                     'options': {
                         'url': 'http://example.com',
-                        'method': 'auto', # get, post, both, auto
+                        'method': 'auto', # get, post, both, auto, network 
                         'parameters': 'auto',
                         'scope': 'single', # single, host, crawl
                         'crawl_depth': '2',
@@ -6087,81 +6109,73 @@ class KNDYSFramework:
 
     def _render_screen_header(self, title, tagline=None, width=70):
         """Render a screen header"""
-        line = '━' * width
-        label = f" {title.upper()} "
-        label_line = label.center(width, '━')
-        print(f"\n{Fore.MAGENTA}{Style.BRIGHT}┏{line}┓{Style.RESET_ALL}")
-        print(f"{Fore.MAGENTA}{Style.BRIGHT}┃{label_line}┃{Style.RESET_ALL}")
+        w = width
+        print(f"\n{Fore.CYAN}{Style.BRIGHT}┌{'─' * w}┐{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}{Style.BRIGHT}│{f' {title}'.ljust(w)}│{Style.RESET_ALL}")
         if tagline:
-            print(f"{Fore.MAGENTA}┃ {tagline}{Style.RESET_ALL}")
-        print(f"{Fore.MAGENTA}{Style.BRIGHT}┗{line}┛{Style.RESET_ALL}\n")
+            print(f"{Fore.CYAN}│{f' {tagline}'.ljust(w)}│{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}{Style.BRIGHT}└{'─' * w}┘{Style.RESET_ALL}")
 
     def show_wordlists(self):
         """Display extended password wordlist catalog"""
         catalog = self.wordlists.get('wordlist_catalog', [])
 
         if not catalog:
-            print(f"{Fore.YELLOW} No wordlist catalog entries found{Style.RESET_ALL}")
+            print(f"\n{Fore.YELLOW}  No wordlist catalog entries found.{Style.RESET_ALL}\n")
             return
 
         grouped = {}
         for entry in catalog:
             grouped.setdefault(entry['category'], []).append(entry)
 
-        self._render_screen_header(
-            "Wordlist Archive",
-            "sync credential arsenals for spray / brute ops"
-        )
+        w = 72
+        print(f"\n{Fore.CYAN}{Style.BRIGHT}┌{'─' * w}┐{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}{Style.BRIGHT}│{' WORDLIST CATALOG'.ljust(w)}│{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}{Style.BRIGHT}└{'─' * w}┘{Style.RESET_ALL}")
 
         for category, entries in sorted(grouped.items()):
-            header = f"{category.upper()} · {len(entries)} feeds"
-            print(f"{Fore.CYAN}┌─[{header}]{Style.RESET_ALL}")
+            print(f"\n  {Fore.CYAN}{Style.BRIGHT}{category.upper()} ({len(entries)} wordlists){Style.RESET_ALL}")
+            print(f"  {Fore.CYAN}{'─' * 56}{Style.RESET_ALL}")
             for entry in sorted(entries, key=lambda e: e['name'].lower()):
-                status_icon = f"{Fore.GREEN}●{Style.RESET_ALL}" if entry['available'] else f"{Fore.RED}○{Style.RESET_ALL}"
+                status_icon = f"{Fore.GREEN}[OK]{Style.RESET_ALL}" if entry['available'] else f"{Fore.YELLOW}[--]{Style.RESET_ALL}"
                 aliases = ', '.join(sorted(set(entry['aliases']), key=lambda a: (len(a), a))[:3])
-                print(
-                    f"{Fore.WHITE}│ {status_icon} {Fore.YELLOW}{entry['name']:<32}{Fore.WHITE}[{entry['size']}]"
-                    f" {Fore.BLUE}{entry['description']}{Style.RESET_ALL}"
-                )
-                print(f"{Fore.WHITE}│ aliases :: {Fore.CYAN}{aliases}{Style.RESET_ALL}")
-                source_line = 'bundled with KNDYS' if entry.get('bundled') else entry['url']
-                print(f"{Fore.WHITE}│ source :: {Fore.GREEN}{source_line}{Style.RESET_ALL}")
-            print(f"{Fore.CYAN}└{'─'*68}{Style.RESET_ALL}\n")
+                print(f"    {status_icon} {Fore.WHITE}{entry['name']:<28}{Fore.YELLOW}({entry['size']}){Style.RESET_ALL}")
+                print(f"         {Fore.WHITE}{entry['description']}{Style.RESET_ALL}")
+                print(f"         Aliases: {Fore.CYAN}{aliases}{Style.RESET_ALL}")
 
-        print(f"{Fore.CYAN}▸ sync :: {Fore.GREEN}download wordlist <alias>{Style.RESET_ALL}")
-        print(f"{Fore.CYAN}▸ op :: {Fore.GREEN}use password/spray_attack → set usernames/passwords{Style.RESET_ALL}\n")
+        print(f"\n{Fore.WHITE}  Download: {Fore.GREEN}download wordlist {Fore.YELLOW}<alias>{Style.RESET_ALL}\n")
 
     def download_wordlist(self, name):
         """Download and prepare a wordlist (passwords, usernames, or credentials)"""
         entry = self.find_wordlist_entry(name)
 
         if not entry:
-            print(f"{Fore.RED} Unknown wordlist: {Fore.WHITE}{name}{Style.RESET_ALL}")
-            print(f"{Fore.BLUE}ℹ Use {Fore.CYAN}show wordlists{Fore.BLUE} to see available lists{Style.RESET_ALL}")
+            print(f"\n{Fore.RED}  [!] Unknown wordlist: {Fore.WHITE}{name}{Style.RESET_ALL}")
+            print(f"{Fore.WHITE}  Use {Fore.GREEN}show wordlists{Fore.WHITE} to see available options{Style.RESET_ALL}\n")
             return
 
         if entry.get('bundled'):
             if entry['path'].exists():
-                print(f"{Fore.GREEN} Bundled wordlist available locally{Style.RESET_ALL}")
-                print(f"{Fore.CYAN} → {entry['path']}{Style.RESET_ALL}")
+                print(f"{Fore.GREEN}  [+] Bundled wordlist available locally{Style.RESET_ALL}")
+                print(f"{Fore.WHITE}      Path: {entry['path']}{Style.RESET_ALL}")
             else:
-                print(f"{Fore.RED}[!] Bundled wordlist missing: {entry['name']}{Style.RESET_ALL}")
-                print(f"{Fore.BLUE}ℹ Ensure repository assets under 'wordlists/' are intact.{Style.RESET_ALL}")
+                print(f"{Fore.RED}  [!] Bundled wordlist missing: {entry['name']}{Style.RESET_ALL}")
+                print(f"{Fore.WHITE}      Ensure repository assets under 'wordlists/' are intact.{Style.RESET_ALL}")
             entry['available'] = entry['path'].exists()
             return
 
         if entry['path'].exists():
-            print(f"{Fore.GREEN} Wordlist already available{Style.RESET_ALL}")
-            print(f"{Fore.CYAN} → {entry['path']}{Style.RESET_ALL}")
+            print(f"{Fore.GREEN}  [+] Wordlist already available{Style.RESET_ALL}")
+            print(f"{Fore.WHITE}      Path: {entry['path']}{Style.RESET_ALL}")
             entry['available'] = True
             return
 
-        print(f"\n{Fore.CYAN}┌─[ DOWNLOAD INFO ]──────────────────────────────{Style.RESET_ALL}")
-        print(f"{Fore.WHITE}│ Name : {Fore.YELLOW}{entry['name']}{Style.RESET_ALL}")
-        print(f"{Fore.WHITE}│ Type : {Fore.MAGENTA}{entry['category'].upper()}{Style.RESET_ALL}")
-        print(f"{Fore.WHITE}│ Size : {Fore.CYAN}{entry['size']}{Style.RESET_ALL}")
-        print(f"{Fore.WHITE}│ Source : {Fore.BLUE}{entry['url'][:50]}...{Style.RESET_ALL}")
-        print(f"{Fore.CYAN}└────────────────────────────────────────────────{Style.RESET_ALL}\n")
+        print(f"\n{Fore.CYAN}  Download Details:{Style.RESET_ALL}")
+        print(f"{Fore.WHITE}    Name:   {entry['name']}{Style.RESET_ALL}")
+        print(f"{Fore.WHITE}    Type:   {entry['category'].upper()}{Style.RESET_ALL}")
+        print(f"{Fore.WHITE}    Size:   {entry['size']}{Style.RESET_ALL}")
+        print(f"{Fore.WHITE}    Source: {entry['url'][:50]}...{Style.RESET_ALL}")
+        print()
 
         confirm = input(f"{Fore.YELLOW}Download now? (y/N): {Style.RESET_ALL}").strip().lower()
         if confirm != 'y':
@@ -6249,30 +6263,58 @@ class KNDYSFramework:
                         print(f"[DEBUG] Exception: {e}")
 
     def show_modules(self, category=None):
-        """Display available modules"""
-        self._render_screen_header(
-            "Operations Library",
-            "enumerate vectors, payload chains, and attack surfaces"
-        )
-        
-        def render_block(cat_name, modules):
-            ordered = sorted(modules.items(), key=lambda item: item[0])
-            header = f"{cat_name.upper()} :: {len(ordered)} modules"
-            print(f"{Fore.CYAN}┌─[{header}]{Style.RESET_ALL}")
-            for idx, (module_name, module_info) in enumerate(ordered, 1):
-                print(
-                    f"{Fore.WHITE}│ {idx:02d} » {Fore.GREEN}{module_name:<20}{Fore.WHITE}"
-                    f"// {module_info['description']}{Style.RESET_ALL}"
-                )
-            print(f"{Fore.CYAN}└{'─'*68}{Style.RESET_ALL}")
+        """Display available modules - categories overview or specific category details"""
+        cat_desc = self._get_category_descriptions()
 
-        if category and category in self.modules:
-            render_block(category, self.modules[category])
+        if category:
+            # Show modules in a specific category
+            if category not in self.modules:
+                print(f"\n{Fore.RED}  [!] Unknown category: {Fore.WHITE}{category}{Style.RESET_ALL}")
+                print(f"{Fore.YELLOW}      Available categories: {Fore.CYAN}{', '.join(sorted(self.modules.keys()))}{Style.RESET_ALL}\n")
+                return
+
+            modules = self.modules[category]
+            ordered = sorted(modules.items(), key=lambda item: item[0])
+            desc = cat_desc.get(category, '')
+
+            w = 72
+            print(f"\n{Fore.CYAN}{Style.BRIGHT}┌{'─' * w}┐{Style.RESET_ALL}")
+            title = f" {category.upper()} — {desc} "
+            print(f"{Fore.CYAN}{Style.BRIGHT}│{title.ljust(w)}│{Style.RESET_ALL}")
+            print(f"{Fore.CYAN}{Style.BRIGHT}├{'─' * w}┤{Style.RESET_ALL}")
+            print(f"{Fore.CYAN}│  {'#':<4} {'Module':<22} {'Description':<44}│{Style.RESET_ALL}")
+            print(f"{Fore.CYAN}│  {'─'*3}  {'─'*21} {'─'*43} │{Style.RESET_ALL}")
+
+            for idx, (mod_name, mod_info) in enumerate(ordered, 1):
+                desc_text = mod_info['description'][:42]
+                line = f"  {Fore.WHITE}{idx:<4} {Fore.GREEN}{mod_name:<22}{Fore.WHITE}{desc_text:<44}"
+                print(f"{Fore.CYAN}│{line}{Fore.CYAN}│{Style.RESET_ALL}")
+
+            print(f"{Fore.CYAN}{Style.BRIGHT}└{'─' * w}┘{Style.RESET_ALL}")
+            print(f"\n{Fore.WHITE}  Use a module:  {Fore.GREEN}use {category}/{Fore.YELLOW}<module_name>{Style.RESET_ALL}")
+            print(f"{Fore.WHITE}  Example:       {Fore.GREEN}use {category}/{ordered[0][0]}{Style.RESET_ALL}\n")
+
         else:
-            for idx, (category_name, modules) in enumerate(sorted(self.modules.items(), key=lambda item: item[0])):
-                if idx:
-                    print()
-                render_block(category_name, modules)
+            # Show category overview
+            w = 72
+            print(f"\n{Fore.CYAN}{Style.BRIGHT}┌{'─' * w}┐{Style.RESET_ALL}")
+            print(f"{Fore.CYAN}{Style.BRIGHT}│{' MODULE CATEGORIES'.ljust(w)}│{Style.RESET_ALL}")
+            print(f"{Fore.CYAN}{Style.BRIGHT}├{'─' * w}┤{Style.RESET_ALL}")
+            print(f"{Fore.CYAN}│  {'#':<4} {'Category':<14} {'Modules':<10} {'Description':<42}│{Style.RESET_ALL}")
+            print(f"{Fore.CYAN}│  {'─'*3}  {'─'*13} {'─'*9}  {'─'*41} │{Style.RESET_ALL}")
+
+            for idx, (cat_name, modules) in enumerate(sorted(self.modules.items()), 1):
+                desc = cat_desc.get(cat_name, '')[:40]
+                count = str(len(modules))
+                line = f"  {Fore.WHITE}{idx:<4} {Fore.GREEN}{cat_name:<14}{Fore.YELLOW}{count:<10}{Fore.WHITE}{desc:<42}"
+                print(f"{Fore.CYAN}│{line}{Fore.CYAN}│{Style.RESET_ALL}")
+
+            print(f"{Fore.CYAN}{Style.BRIGHT}└{'─' * w}┘{Style.RESET_ALL}")
+
+            total = sum(len(m) for m in self.modules.values())
+            print(f"\n{Fore.WHITE}  Total: {Fore.CYAN}{total}{Fore.WHITE} modules across {Fore.CYAN}{len(self.modules)}{Fore.WHITE} categories{Style.RESET_ALL}")
+            print(f"{Fore.WHITE}  View a category:  {Fore.GREEN}show modules {Fore.YELLOW}<category>{Style.RESET_ALL}")
+            print(f"{Fore.WHITE}  Example:           {Fore.GREEN}show modules recon{Style.RESET_ALL}\n")
     
     def use_module(self, module_path):
         """Select a module to use"""
@@ -6293,15 +6335,15 @@ class KNDYSFramework:
                     break
         
         if not category or not module_name:
-            print(f"{Fore.RED} Module not found: {Fore.WHITE}{module_path}{Style.RESET_ALL}")
-            print(f"{Fore.BLUE}ℹ Use {Fore.CYAN}show modules{Fore.BLUE} to list available modules{Style.RESET_ALL}")
+            print(f"\n{Fore.RED}  [!] Module not found: {Fore.WHITE}{module_path}{Style.RESET_ALL}")
+            print(f"{Fore.WHITE}  Use {Fore.GREEN}show modules{Fore.WHITE} to browse available modules{Style.RESET_ALL}\n")
             return False
         
         self.current_module = f"{category}/{module_name}"
         self.module_options = self.modules[category][module_name]['options'].copy()
         
-        print(f"{Fore.GREEN} Module loaded: {Fore.CYAN}{self.current_module}{Style.RESET_ALL}")
-        print(f"{Fore.BLUE}→ {self.modules[category][module_name]['description']}{Style.RESET_ALL}")
+        print(f"\n{Fore.GREEN}  [+] Module loaded: {Fore.CYAN}{self.current_module}{Style.RESET_ALL}")
+        print(f"{Fore.WHITE}      {self.modules[category][module_name]['description']}{Style.RESET_ALL}")
         
         self.show_options()
         return True
@@ -6309,44 +6351,51 @@ class KNDYSFramework:
     def show_options(self):
         """Show current module options"""
         if not self.current_module:
-            print(f"{Fore.RED} No module selected{Style.RESET_ALL}")
+            print(f"\n{Fore.YELLOW}  No module selected. Use {Fore.GREEN}use <category/module>{Fore.YELLOW} first.{Style.RESET_ALL}\n")
             return
 
-        self._render_screen_header(
-            f"Module Vector :: {self.current_module}",
-            "tune parameters before initiating the run"
-        )
+        w = 72
+        print(f"\n{Fore.CYAN}{Style.BRIGHT}┌{'─' * w}┐{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}{Style.BRIGHT}│{f' Module: {self.current_module}'.ljust(w)}│{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}{Style.BRIGHT}├{'─' * w}┤{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}│  {'Option':<20} {'Current Value':<30} {'Status':<18} │{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}│  {'─'*19} {'─'*29}  {'─'*17} │{Style.RESET_ALL}")
 
-        print(f"{Fore.CYAN}{'parameter':<24}│{'value':<36}│ notes{Style.RESET_ALL}")
-        print(f"{Fore.CYAN}{'─'*24}┼{'─'*36}┼{'─'*20}{Style.RESET_ALL}")
         for option, value in self.module_options.items():
-            note = 'set' if str(value).strip() else 'pending'
-            note_color = Fore.GREEN if note == 'set' else Fore.YELLOW
-            print(
-                f"{Fore.GREEN}{option:<24}{Fore.WHITE}│ {value:<36}│ {note_color}{note.upper()}{Style.RESET_ALL}"
-            )
-        print()
+            val_str = str(value) if value else ''
+            if val_str.strip():
+                status = f"{Fore.GREEN}SET{Style.RESET_ALL}"
+                status_pad = 17 - 3
+            else:
+                status = f"{Fore.YELLOW}REQUIRED{Style.RESET_ALL}"
+                status_pad = 17 - 8
+            val_display = val_str[:28] if val_str else '—'
+            line = f"  {Fore.GREEN}{option:<20}{Fore.WHITE}{val_display:<30} {status}"
+            print(f"{Fore.CYAN}│{line}{' ' * status_pad}{Fore.CYAN}│{Style.RESET_ALL}")
+
+        print(f"{Fore.CYAN}{Style.BRIGHT}└{'─' * w}┘{Style.RESET_ALL}")
+        print(f"\n{Fore.WHITE}  Configure: {Fore.GREEN}set {Fore.YELLOW}<option> <value>{Fore.WHITE}    Execute: {Fore.GREEN}run{Style.RESET_ALL}\n")
     
     def set_option(self, option, value):
         """Set module option with validation"""
         if not self.current_module:
-            print(f"{Fore.RED} No module selected{Style.RESET_ALL}")
+            print(f"\n{Fore.YELLOW}  No module selected. Use {Fore.GREEN}use <category/module>{Fore.YELLOW} first.{Style.RESET_ALL}")
             return
         
         if option not in self.module_options:
-            print(f"{Fore.RED} Invalid option: {Fore.WHITE}{option}{Style.RESET_ALL}")
-            available = ', '.join(list(self.module_options.keys())[:5])
-            print(f"{Fore.BLUE}ℹ Available options: {Fore.CYAN}{available}{Style.RESET_ALL}")
+            print(f"\n{Fore.RED}  [!] Invalid option: {Fore.WHITE}{option}{Style.RESET_ALL}")
+            available = ', '.join(list(self.module_options.keys()))
+            print(f"{Fore.WHITE}      Available options: {Fore.CYAN}{available}{Style.RESET_ALL}")
             return
         
         # Validate input based on option type
         validated_value = self._validate_option_value(option, value)
         if validated_value is None:
-            print(f"{Fore.RED} Invalid value for {option}: {value}{Style.RESET_ALL}")
+            print(f"{Fore.RED}  [!] Invalid value for {option}: {value}{Style.RESET_ALL}")
             return
         
         self.module_options[option] = validated_value
-        print(f"{Fore.GREEN} {option} {Fore.WHITE}→ {Fore.CYAN}{validated_value}{Style.RESET_ALL}")
+        print(f"{Fore.GREEN}  [+] {option} => {Fore.WHITE}{validated_value}{Style.RESET_ALL}")
     
     def _validate_option_value(self, option, value):
         """Validate option value based on type"""
@@ -20872,53 +20921,69 @@ Remediation: {finding['remediation']}
     
     def show_help(self):
         """Display help"""
-        self._render_screen_header("KNDYS Ops Manual", "stay ghosted. stay relentless.")
+        w = 72
+        print(f"\n{Fore.CYAN}{Style.BRIGHT}┌{'─' * w}┐{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}{Style.BRIGHT}│{' KNDYS — Command Reference'.ljust(w)}│{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}{Style.BRIGHT}└{'─' * w}┘{Style.RESET_ALL}")
 
         sections = [
-            ("Core Signals", [
-                ("help", "display this manifest"),
-                ("clear", "purge terminal noise"),
-                ("exit / quit", "sever link to the deck")
+            ("General", [
+                ("help",             "Show this command reference"),
+                ("clear",            "Clear screen and show banner"),
+                ("exit / quit",      "Exit the framework"),
             ]),
-            ("Module Control", [
-                ("show modules [cat]", "enumerate offensive stacks"),
-                ("use <cat/module>", "load vector"),
-                ("options", "inspect parameters"),
-                ("set <opt> <val>", "program telemetry"),
-                ("run", "execute current payload"),
-                ("back", "drop module context")
+            ("Module Navigation", [
+                ("show modules",           "List all module categories"),
+                ("show modules <category>","List modules in a category"),
+                ("use <category/module>",  "Select a module to configure"),
+                ("back",                   "Deselect current module"),
             ]),
-            ("Wordlist & Payload Arsenal", [
-                ("show wordlists", "view curated dictionaries"),
-                ("download wordlist <alias>", "pull from catalog"),
-                ("show payloads", "list generators"),
-                ("generate payload", "craft shellcode")
+            ("Module Configuration", [
+                ("options",          "Show current module options"),
+                ("set <option> <value>","Set a module option"),
+                ("run",              "Execute the selected module"),
             ]),
-            ("Global Config", [
-                ("setg <opt> <val>", "mutate global vars"),
-                ("stats", "runtime telemetry"),
-                ("sessions", "active footholds")
-            ])
+            ("Payloads & Wordlists", [
+                ("show payloads",            "List available payload types"),
+                ("generate payload",         "Generate a payload interactively"),
+                ("show wordlists",           "Browse wordlist catalog"),
+                ("download wordlist <alias>","Download a specific wordlist"),
+            ]),
+            ("Global & Monitoring", [
+                ("setg <option> <value>","Set a global option"),
+                ("stats",               "Show framework statistics"),
+                ("metrics",             "Show performance metrics"),
+                ("sessions",            "Show active sessions"),
+                ("search exploits <q>", "Search exploit database"),
+            ]),
         ]
 
         for title, commands in sections:
-            print(f"{Fore.CYAN}{title.upper()}{Style.RESET_ALL}")
-            for cmd, description in commands:
-                print(f" {Fore.GREEN}{cmd:<26}{Fore.WHITE}:: {description}{Style.RESET_ALL}")
-            print()
+            print(f"\n  {Fore.CYAN}{Style.BRIGHT}{title}{Style.RESET_ALL}")
+            print(f"  {Fore.CYAN}{'─' * 56}{Style.RESET_ALL}")
+            for cmd, desc in commands:
+                print(f"    {Fore.GREEN}{cmd:<28}{Fore.WHITE}{desc}{Style.RESET_ALL}")
 
-        domains = "recon | scan | exploit | post | password | wireless | social | network | webapp | report"
-        print(f"{Fore.CYAN}PRIMARY DOMAINS{Style.RESET_ALL}")
-        print(f" {Fore.WHITE}{domains}{Style.RESET_ALL}\n")
-
-        recipes = [
-            ("Port scan", "show modules recon → use recon/port_scanner → set target/ports → run"),
-            ("Spray attack", "use password/spray_attack → set usernames/passwords → run"),
-            ("Handler", "use exploit/multi_handler → set lhost/lport → run")
+        # Quick-start examples
+        print(f"\n  {Fore.CYAN}{Style.BRIGHT}Quick Start Examples{Style.RESET_ALL}")
+        print(f"  {Fore.CYAN}{'─' * 56}{Style.RESET_ALL}")
+        examples = [
+            ("Port scan",     "use recon/port_scanner → set target 192.168.1.1 → run"),
+            ("Vuln scan",     "use scan/vuln_scanner → set target 10.0.0.1 → run"),
+            ("Brute force",   "use password/brute_force → set target <ip> → run"),
+            ("Multi handler", "use exploit/multi_handler → set lhost <ip> → run"),
         ]
-        print(f"{Fore.CYAN}FIELD RECIPES{Style.RESET_ALL}")
-        for label, steps in recipes:
-            print(f" ▸ {label}: {Fore.GREEN}{steps}{Style.RESET_ALL}")
+        for label, steps in examples:
+            print(f"    {Fore.YELLOW}{label + ':':<16}{Fore.WHITE}{steps}{Style.RESET_ALL}")
+
+        # Category summary
+        cat_desc = self._get_category_descriptions()
+        print(f"\n  {Fore.CYAN}{Style.BRIGHT}Module Categories{Style.RESET_ALL}")
+        print(f"  {Fore.CYAN}{'─' * 56}{Style.RESET_ALL}")
+        for cat_name in sorted(self.modules.keys()):
+            desc = cat_desc.get(cat_name, '')
+            count = len(self.modules[cat_name])
+            print(f"    {Fore.GREEN}{cat_name:<14}{Fore.WHITE}{desc} ({count} modules){Style.RESET_ALL}")
         print()
     
     def search_exploits(self, query):
@@ -20939,14 +21004,17 @@ Remediation: {finding['remediation']}
     
     def show_payloads(self):
         """Show available payloads"""
-        self._render_screen_header("Payload Foundry", "generator families for every foothold scenario")
+        w = 50
+        print(f"\n{Fore.CYAN}{Style.BRIGHT}┌{'─' * w}┐{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}{Style.BRIGHT}│{' PAYLOAD GENERATORS'.ljust(w)}│{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}{Style.BRIGHT}└{'─' * w}┘{Style.RESET_ALL}")
 
         for category, payloads in self.payload_gen.payloads.items():
-            header = f"{category.upper()} · {len(payloads)} variants"
-            print(f"{Fore.CYAN}┌─[{header}]{Style.RESET_ALL}")
+            print(f"\n  {Fore.CYAN}{Style.BRIGHT}{category.upper()} ({len(payloads)} types){Style.RESET_ALL}")
+            print(f"  {Fore.CYAN}{'─' * 36}{Style.RESET_ALL}")
             for payload_type in payloads.keys():
-                print(f"{Fore.WHITE}│ {Fore.GREEN}{payload_type:<20}{Fore.WHITE}ready{Style.RESET_ALL}")
-            print(f"{Fore.CYAN}└{'─'*40}{Style.RESET_ALL}\n")
+                print(f"    {Fore.GREEN}{payload_type:<24}{Fore.WHITE}Available{Style.RESET_ALL}")
+        print(f"\n{Fore.WHITE}  Generate: {Fore.GREEN}generate payload{Style.RESET_ALL}\n")
     
     def generate_payload(self):
         """Generate payload interactively"""
@@ -41090,65 +41158,73 @@ END:VCARD"""
     
     def show_stats(self):
         """Show framework statistics"""
-        self._render_screen_header("Framework Telemetry", "live signal across pool, rate, sessions, and modules")
-    
+        w = 60
+        print(f"\n{Fore.CYAN}{Style.BRIGHT}┌{'─' * w}┐{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}{Style.BRIGHT}│{' FRAMEWORK STATISTICS'.ljust(w)}│{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}{Style.BRIGHT}└{'─' * w}┘{Style.RESET_ALL}")
+
         blocks = [
             (
-                "Connection Mesh",
+                "Connections",
                 [
-                    f"active channels :: {self.connection_pool.get_active_count()} / {self.connection_pool.max_connections}",
-                    f"reserve slots :: {max(0, self.connection_pool.max_connections - self.connection_pool.get_active_count())}"
+                    f"Active:    {self.connection_pool.get_active_count()} / {self.connection_pool.max_connections}",
+                    f"Available: {max(0, self.connection_pool.max_connections - self.connection_pool.get_active_count())}"
                 ]
             ),
             (
-                "Rate Governor",
+                "Rate Limiter",
                 [
-                    f"ceiling :: {self.rate_limiter.max_requests} req / {self.rate_limiter.time_window}s",
-                    f"in-flight :: {len(self.rate_limiter.requests)} queued"
+                    f"Limit:   {self.rate_limiter.max_requests} requests / {self.rate_limiter.time_window}s",
+                    f"Queued:  {len(self.rate_limiter.requests)}"
                 ]
             ),
             (
                 "Sessions",
                 [
-                    f"active :: {len(self.session_manager.sessions)}",
-                    f"timeout :: {self.session_manager.session_timeout}s"
+                    f"Active:  {len(self.session_manager.sessions)}",
+                    f"Timeout: {self.session_manager.session_timeout}s"
                 ]
             )
         ]
-    
+
         total_modules = sum(len(mods) for mods in self.modules.values())
         module_lines = [
-            f"inventory :: {total_modules} modules / {len(self.modules)} domains"
+            f"Total:   {total_modules} modules in {len(self.modules)} categories"
         ]
         if self.current_module:
-            module_lines.append(f"engaged :: {self.current_module}")
-        blocks.append(("Module Matrix", module_lines))
-    
+            module_lines.append(f"Current: {self.current_module}")
+        blocks.append(("Modules", module_lines))
+
         for title, lines in blocks:
-            print(f"{Fore.CYAN}┌─[{title}]{Style.RESET_ALL}")
+            print(f"\n  {Fore.CYAN}{Style.BRIGHT}{title}{Style.RESET_ALL}")
+            print(f"  {Fore.CYAN}{'─' * 42}{Style.RESET_ALL}")
             for line in lines:
-                print(f"{Fore.WHITE}│ {line}{Style.RESET_ALL}")
-            print(f"{Fore.CYAN}└{'─'*52}{Style.RESET_ALL}\n")
-    
+                print(f"    {Fore.WHITE}{line}{Style.RESET_ALL}")
+
         error_stats = self.error_handler.get_error_stats()
         if error_stats:
-            print(f"{Fore.CYAN}┌─[Error Summary]{Style.RESET_ALL}")
+            print(f"\n  {Fore.CYAN}{Style.BRIGHT}Errors{Style.RESET_ALL}")
+            print(f"  {Fore.CYAN}{'─' * 42}{Style.RESET_ALL}")
             for error_type, count in sorted(error_stats.items(), key=lambda x: x[1], reverse=True):
-                print(f"{Fore.WHITE}│ {error_type:<26} {Fore.RED}{count}{Style.RESET_ALL}")
-            print(f"{Fore.CYAN}└{'─'*52}{Style.RESET_ALL}\n")
-    
+                print(f"    {Fore.WHITE}{error_type:<30} {Fore.RED}{count}{Style.RESET_ALL}")
+        print()
+
     def show_sessions(self):
         """Show active sessions"""
-        self._render_screen_header("Active Links", "track footholds + idle timers")
         sessions = self.session_manager.sessions
-        
+
+        w = 72
+        print(f"\n{Fore.CYAN}{Style.BRIGHT}┌{'─' * w}┐{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}{Style.BRIGHT}│{' ACTIVE SESSIONS'.ljust(w)}│{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}{Style.BRIGHT}└{'─' * w}┘{Style.RESET_ALL}")
+
         if not sessions:
-            print(f"{Fore.YELLOW}▸ No live sessions. Launch a module to establish presence.{Style.RESET_ALL}\n")
+            print(f"\n{Fore.WHITE}  No active sessions.{Style.RESET_ALL}\n")
             return
-        
-        print(f"{Fore.CYAN}{'session':<14}│{'created':<20}│{'last activity':<20}│status{Style.RESET_ALL}")
-        print(f"{Fore.CYAN}{'─'*14}┼{'─'*20}┼{'─'*20}┼{'─'*12}{Style.RESET_ALL}")
-        
+
+        print(f"\n  {Fore.CYAN}{'Session':<14} {'Created':<20} {'Last Activity':<20} {'Status'}{Style.RESET_ALL}")
+        print(f"  {Fore.CYAN}{'─'*13}  {'─'*19}  {'─'*19}  {'─'*10}{Style.RESET_ALL}")
+
         for session_id, session_data in sessions.items():
             created = datetime.fromtimestamp(session_data['created']).strftime('%Y-%m-%d %H:%M:%S')
             last_activity = datetime.fromtimestamp(session_data['last_activity']).strftime('%Y-%m-%d %H:%M:%S')
@@ -41156,10 +41232,10 @@ END:VCARD"""
             if idle_time < 60:
                 status = f"{Fore.GREEN}ACTIVE{Style.RESET_ALL}"
             elif idle_time < 300:
-                status = f"{Fore.YELLOW}IDLE {int(idle_time/60)}m{Style.RESET_ALL}"
+                status = f"{Fore.YELLOW}IDLE ({int(idle_time/60)}m){Style.RESET_ALL}"
             else:
-                status = f"{Fore.RED}STALE {int(idle_time/60)}m{Style.RESET_ALL}"
-            print(f"{session_id:<14}│{created:<20}│{last_activity:<20}│{status}")
+                status = f"{Fore.RED}STALE ({int(idle_time/60)}m){Style.RESET_ALL}"
+            print(f"  {session_id:<14} {created:<20} {last_activity:<20} {status}")
         print()
     
     def run(self):
@@ -41172,13 +41248,11 @@ END:VCARD"""
                 if self.current_module:
                     module_short = self.current_module.split('/')[-1]
                     prompt = (
-                        f"{Fore.MAGENTA}╔[{Fore.CYAN}kndys//ops{Fore.MAGENTA}]─[{Fore.GREEN}{module_short}{Fore.MAGENTA}]╼\n"
-                        f"{Fore.MAGENTA}╚══▶ {Style.RESET_ALL} "
+                        f"{Fore.CYAN}kndys{Fore.WHITE}({Fore.GREEN}{module_short}{Fore.WHITE}) {Fore.CYAN}> {Style.RESET_ALL}"
                     )
                 else:
                     prompt = (
-                        f"{Fore.MAGENTA}╔[{Fore.CYAN}kndys//ops{Fore.MAGENTA}]╼\n"
-                        f"{Fore.MAGENTA}╚══▶ {Style.RESET_ALL} "
+                        f"{Fore.CYAN}kndys {Fore.CYAN}> {Style.RESET_ALL}"
                     )
                 
                 try:
@@ -41195,9 +41269,7 @@ END:VCARD"""
                 args = parts[1:]
                 
                 if command in ['exit', 'quit']:
-                    print(f"\n{Fore.MAGENTA}{Style.BRIGHT}┏━━ LINK TERMINATED ━━┓{Style.RESET_ALL}")
-                    print(f"{Fore.MAGENTA}┃ Signal severed. Stay encrypted.{Style.RESET_ALL}")
-                    print(f"{Fore.MAGENTA}┗{'━'*36}{Style.RESET_ALL}\n")
+                    print(f"\n{Fore.CYAN}  Session terminated. Goodbye.{Style.RESET_ALL}\n")
                     break
                 
                 elif command == 'help':
@@ -41214,19 +41286,26 @@ END:VCARD"""
                     elif args and args[0] == 'wordlists':
                         self.show_wordlists()
                     else:
-                        print(f"{Fore.RED}[!] Usage: show modules|payloads|options|wordlists{Style.RESET_ALL}")
+                        print(f"\n{Fore.YELLOW}  Usage: show <subcommand>{Style.RESET_ALL}")
+                        print(f"    {Fore.GREEN}show modules{Fore.WHITE}          Browse module categories{Style.RESET_ALL}")
+                        print(f"    {Fore.GREEN}show modules <cat>{Fore.WHITE}    View modules in a category{Style.RESET_ALL}")
+                        print(f"    {Fore.GREEN}show options{Fore.WHITE}          View current module options{Style.RESET_ALL}")
+                        print(f"    {Fore.GREEN}show payloads{Fore.WHITE}         List payload generators{Style.RESET_ALL}")
+                        print(f"    {Fore.GREEN}show wordlists{Fore.WHITE}        Browse wordlist catalog{Style.RESET_ALL}")
+                        print()
                 
                 elif command == 'use':
                     if args:
                         self.use_module(args[0])
                     else:
-                        print(f"{Fore.RED}[!] Usage: use <module_path>{Style.RESET_ALL}")
+                        print(f"{Fore.YELLOW}  Usage: {Fore.GREEN}use {Fore.YELLOW}<category/module>{Style.RESET_ALL}")
+                        print(f"{Fore.WHITE}  Example: {Fore.GREEN}use recon/port_scanner{Style.RESET_ALL}")
                 
                 elif command == 'set':
                     if len(args) >= 2:
                         self.set_option(args[0], ' '.join(args[1:]))
                     else:
-                        print(f"{Fore.RED}[!] Usage: set <option> <value>{Style.RESET_ALL}")
+                        print(f"{Fore.YELLOW}  Usage: {Fore.GREEN}set {Fore.YELLOW}<option> <value>{Style.RESET_ALL}")
                 
                 elif command == 'setg':
                     if len(args) >= 2:
@@ -41234,11 +41313,12 @@ END:VCARD"""
                         value = ' '.join(args[1:])
                         if key in self.config:
                             self.config[key] = value
-                            print(f"{Fore.GREEN}[+] Global {key} => {value}{Style.RESET_ALL}")
+                            print(f"{Fore.GREEN}  [+] Global option set: {Fore.WHITE}{key} = {value}{Style.RESET_ALL}")
                         else:
-                            print(f"{Fore.RED}[!] Invalid global option: {key}{Style.RESET_ALL}")
+                            print(f"{Fore.RED}  [!] Invalid global option: {Fore.WHITE}{key}{Style.RESET_ALL}")
+                            print(f"{Fore.WHITE}      Available: {Fore.CYAN}{', '.join(self.config.keys())}{Style.RESET_ALL}")
                     else:
-                        print(f"{Fore.RED}[!] Usage: setg <option> <value>{Style.RESET_ALL}")
+                        print(f"{Fore.YELLOW}  Usage: {Fore.GREEN}setg {Fore.YELLOW}<option> <value>{Style.RESET_ALL}")
                 
                 elif command == 'options':
                     self.show_options()
@@ -41249,7 +41329,7 @@ END:VCARD"""
                 elif command == 'back':
                     self.current_module = None
                     self.module_options = {}
-                    print(f"{Fore.YELLOW}[*] Back to main context{Style.RESET_ALL}")
+                    print(f"{Fore.CYAN}  Returned to main context{Style.RESET_ALL}")
                 
                 elif command == 'clear':
                     self.display_banner()
@@ -41259,42 +41339,41 @@ END:VCARD"""
                         query = ' '.join(args[1:]) if len(args) > 1 else ''
                         self.search_exploits(query)
                     else:
-                        print(f"{Fore.RED}[!] Usage: search exploits <query>{Style.RESET_ALL}")
+                        print(f"{Fore.YELLOW}  Usage: {Fore.GREEN}search exploits {Fore.YELLOW}<query>{Style.RESET_ALL}")
                 
                 elif command == 'generate':
                     if args and args[0] == 'payload':
                         self.generate_payload()
                     else:
-                        print(f"{Fore.RED}[!] Usage: generate payload{Style.RESET_ALL}")
+                        print(f"{Fore.YELLOW}  Usage: {Fore.GREEN}generate payload{Style.RESET_ALL}")
     
                 elif command == 'download':
                     if len(args) >= 2 and args[0] == 'wordlist':
                         self.download_wordlist(args[1])
                     else:
-                        print(f"{Fore.RED}[!] Usage: download wordlist <alias>{Style.RESET_ALL}")
+                        print(f"{Fore.YELLOW}  Usage: {Fore.GREEN}download wordlist {Fore.YELLOW}<alias>{Style.RESET_ALL}")
                 
                 elif command == 'stats':
                     self.show_stats()
                 
                 elif command == 'metrics':
-                    # NEW: Show performance metrics
                     self.performance_metrics.print_report()
                 
                 elif command == 'sessions':
                     self.show_sessions()
                 
                 else:
-                    print(f"{Fore.RED} Unknown command: {Fore.WHITE}{command}{Style.RESET_ALL}")
-                    print(f"{Fore.BLUE}ℹ Type {Fore.CYAN}help{Fore.BLUE} for available commands{Style.RESET_ALL}")
+                    print(f"{Fore.RED}  Unknown command: {Fore.WHITE}{command}{Style.RESET_ALL}")
+                    print(f"{Fore.WHITE}  Type {Fore.GREEN}help{Fore.WHITE} to see all available commands{Style.RESET_ALL}")
             
             except KeyboardInterrupt:
-                print(f"\n{Fore.YELLOW}[!] Command interrupted{Style.RESET_ALL}")
+                print(f"\n{Fore.YELLOW}  [!] Command interrupted{Style.RESET_ALL}")
                 if self.running:
                     self.running = False
                     time.sleep(1)
             
             except Exception as e:
-                print(f"{Fore.RED}[!] Error: {str(e)}{Style.RESET_ALL}")
+                print(f"{Fore.RED}  [!] Error: {str(e)}{Style.RESET_ALL}")
                 import traceback
                 traceback.print_exc()
     
